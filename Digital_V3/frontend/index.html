@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Blockchain-Based Digital Evidence Verification System for forensic investigators and auditors.">
+<title>CipherChain Forensics — Digital Evidence Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════ AUTH SCREEN ══════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-bg">
+    <div class="hex-grid"></div>
+    <div class="auth-center">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 48 48" fill="none"><polygon points="24,2 44,13 44,35 24,46 4,35 4,13" stroke="#00d4ff" stroke-width="2" fill="none"/><polygon points="24,10 36,17 36,31 24,38 12,31 12,17" stroke="#00d4ff" stroke-width="1.5" opacity="0.5" fill="none"/><circle cx="24" cy="24" r="5" fill="#00d4ff" opacity="0.9"/></svg>
+        </div>
+        <div>
+          <h1 class="brand-name">CipherChain</h1>
+          <p class="brand-sub">Forensic Evidence Verification System</p>
+        </div>
+      </div>
+
+      <div class="auth-tabs glass-card">
+        <div class="auth-tabs-nav">
+          <button class="auth-tab-btn active" onclick="switchAuthTab('login')"><span class="ic">&#9670;</span> Staff Access</button>
+          <button class="auth-tab-btn" onclick="switchAuthTab('verify')"><span class="ic">&#9673;</span> Public Verification</button>
+        </div>
+        
+        <div class="auth-cards" style="padding: 2rem;">
+          <!-- Secure Login Card -->
+          <div id="tab-login" class="auth-tab-content active">
+            <div class="auth-card-header">
+              <h2>Secure System Access</h2>
+              <p>Authorized Personnel Only</p>
+            </div>
+            <form id="login-form">
+              <div class="form-group">
+                <label>Username or Email</label>
+                <input type="text" id="login-username" placeholder="Enter credentials" autocomplete="username" required>
+              </div>
+              <div class="form-group">
+                <label>Password</label>
+                <div class="pw-wrap">
+                  <input type="password" id="login-password" placeholder="••••••••••" autocomplete="current-password" required>
+                  <button type="button" class="pw-toggle" onclick="togglePw('login-password', this)">&#9678;</button>
+                </div>
+              </div>
+              <div id="login-error" class="alert-error hidden"></div>
+              <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+                <span class="btn-text">ACCESS SYSTEM</span>
+                <span class="btn-loader hidden">⟳</span>
+              </button>
+            </form>
+            <div class="auth-divider"><span>Default Credentials</span></div>
+            <div class="cred-hints">
+              <div onclick="fillCreds('admin','Admin@2024!')"><span class="ic-role role-admin">A</span> Admin: admin / Admin@2024!</div>
+              <div onclick="fillCreds('investigator1','Invest@2024!')"><span class="ic-role role-investigator">I</span> Investigator: investigator1 / Invest@2024!</div>
+              <div onclick="fillCreds('analyst1','Analyst@2024!')"><span class="ic-role role-analyst">L</span> Analyst: analyst1 / Analyst@2024!</div>
+            </div>
+          </div>
+
+          <!-- Public Verification Card -->
+          <div id="tab-verify" class="auth-tab-content hidden">
+            <!-- Guest Login Step -->
+            <div id="guest-login-step">
+              <div class="auth-card-header">
+                <h2>Third-Party Verification</h2>
+                <p>Guest Account Required &mdash; Sign in to verify evidence</p>
+              </div>
+              <div class="verify-public-area">
+                <p class="verify-desc">To verify evidence integrity, please sign in with your <strong>guest credentials</strong>. Guest accounts are created by the system administrator.</p>
+                <form id="guest-login-form">
+                  <div class="form-group">
+                    <label>Username or Email</label>
+                    <input type="text" id="guest-username" placeholder="Enter guest credentials" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="guest-password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" required>
+                  </div>
+                  <div id="guest-login-error" class="alert-error hidden"></div>
+                  <button type="submit" class="btn btn-verify btn-full" id="guest-login-btn">
+                    <span class="btn-text">SIGN IN AS GUEST</span>
+                    <span class="btn-loader hidden">&circlearrowright;</span>
+                  </button>
+                </form>
+                <div class="guest-info" style="margin-top:1rem;padding:0.8rem;border-radius:8px;background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);font-size:0.8rem;color:var(--text-muted)">
+                  <strong style="color:var(--accent)">&#9432; Need access?</strong><br>
+                  Contact your system administrator to obtain guest credentials. All verification activity is logged for forensic accountability.
+                </div>
+              </div>
+            </div>
+
+            <!-- Verification Step (shown after guest login) -->
+            <div id="guest-verify-step" class="hidden">
+              <div class="auth-card-header">
+                <h2>Third-Party Verification</h2>
+                <p>Guest Session — <span id="guest-session-name"></span> <button class="btn btn-xs btn-ghost" onclick="endGuestSession()" style="margin-left:0.5rem">Sign Out</button></p>
+              </div>
+              <div class="verify-public-area">
+                <p class="verify-desc">Upload any file to verify its integrity against the blockchain. Immediately know if evidence is <strong>authentic</strong> or <strong>tampered</strong>.</p>
+                <form id="public-verify-form">
+                  <div class="upload-zone" id="pv-drop-zone">
+                    <div class="upload-zone-inner">
+                      <span class="upload-icon">&loz;</span>
+                      <p>Drop file here or click to browse</p>
+                      <p class="upload-sub">Any file type supported</p>
+                    </div>
+                    <input type="file" id="pv-file" accept="*/*">
+                  </div>
+                  <div id="pv-file-name" class="file-selected hidden"></div>
+                  <div class="verify-hash-alt">
+                    <div class="alt-divider"><span>OR paste SHA-256 hash</span></div>
+                    <input type="text" id="pv-hash-input" placeholder="SHA-256 hash (64 hex characters)" class="mono-input">
+                    <button type="button" id="pv-hash-btn" class="btn btn-outline btn-full" onclick="verifyByHash()">VERIFY HASH</button>
+                  </div>
+                  <button type="submit" class="btn btn-verify btn-full">VERIFY FILE</button>
+                </form>
+                <div id="public-result" class="verify-result hidden"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function switchAuthTab(tabId) {
+          document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.auth-tab-content').forEach(c => c.classList.add('hidden'));
+          
+          document.getElementById('tab-' + tabId).classList.remove('hidden');
+          event.currentTarget.classList.add('active');
+        }
+      </script>
+
+      <p class="auth-footer">&#9670; Secured by AES-256 Encryption &amp; Blockchain Immutability &nbsp;|&nbsp; CipherChain v2.0</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MAIN APP ══════════════ -->
+<div id="app-screen" class="screen hidden">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">
+        <svg viewBox="0 0 32 32" fill="none"><polygon points="16,2 28,9 28,23 16,30 4,23 4,9" stroke="#00d4ff" stroke-width="1.5" fill="rgba(0,212,255,0.05)"/><circle cx="16" cy="16" r="4" fill="#00d4ff"/></svg>
+      </div>
+      <span>CipherChain</span>
+    </div>
+
+    <div class="user-pill">
+      <div class="user-avatar" id="sidebar-avatar">?</div>
+      <div>
+        <div class="user-name" id="sidebar-name">Loading...</div>
+        <div class="user-role-badge" id="sidebar-role">—</div>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Navigation</div>
+    <nav class="nav-menu" id="nav-menu">
+      <a class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
+        <span class="nav-icon">&#9632;</span> Dashboard
+      </a>
+      <a class="nav-item" data-section="cases" onclick="navigate('cases')">
+        <span class="nav-icon">&#9830;</span> Cases
+      </a>
+      <a class="nav-item investigator-only" data-section="evidence" onclick="navigate('evidence')">
+        <span class="nav-icon">&#9650;</span> Upload Evidence
+      </a>
+      <a class="nav-item" data-section="evidence-list" onclick="navigate('evidence-list')">
+        <span class="nav-icon">&#9654;</span> Evidence Library
+      </a>
+      <a class="nav-item analyst-only" data-section="analyst" onclick="navigate('analyst')">
+        <span class="nav-icon">&#9674;</span> Analysis Lab
+      </a>
+      <a class="nav-item admin-only" data-section="users" onclick="navigate('users')">
+        <span class="nav-icon">&#9673;</span> User Management
+      </a>
+      <a class="nav-item admin-only" data-section="audit" onclick="navigate('audit')">
+        <span class="nav-icon">&#9998;</span> Audit Trail
+      </a>
+      <a class="nav-item" data-section="blockchain" onclick="navigate('blockchain')">
+        <span class="nav-icon">&#9741;</span> Blockchain
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn btn-danger-ghost btn-full" onclick="logout()">&#9166; Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="top-bar-right">
+        <div class="chain-status" id="chain-status-badge">
+          <span class="status-dot"></span> Blockchain
+        </div>
+        <div class="time-display" id="top-time">--:--:--</div>
+      </div>
+    </header>
+
+    <!-- ── DASHBOARD ── -->
+    <section class="content-section active" id="section-dashboard">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card glass-card">
+          <div class="stat-icon">&#9830;</div>
+          <div class="stat-value counter" id="stat-cases">0</div>
+          <div class="stat-label">Total Cases</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon">&#9650;</div>
+          <div class="stat-value counter" id="stat-evidence">0</div>
+          <div class="stat-label">Evidence Items</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon">&#10003;</div>
+          <div class="stat-value counter" id="stat-verified">0</div>
+          <div class="stat-label">Verified</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon">&#9888;</div>
+          <div class="stat-value counter" id="stat-tampered">0</div>
+          <div class="stat-label">Tampered</div>
+        </div>
+        <div class="stat-card glass-card admin-only">
+          <div class="stat-icon">&#9673;</div>
+          <div class="stat-value counter" id="stat-users">0</div>
+          <div class="stat-label">System Users</div>
+        </div>
+        <div class="stat-card glass-card">
+          <div class="stat-icon">&#9741;</div>
+          <div class="stat-value" id="stat-blocks">&mdash;</div>
+          <div class="stat-label">Chain Block</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="glass-card chart-card">
+          <div class="card-header"><h3>Evidence by Type</h3></div>
+          <canvas id="evidenceTypeChart" height="200"></canvas>
+        </div>
+        <div class="glass-card recent-card">
+          <div class="card-header"><h3>Recent Activity</h3></div>
+          <div class="activity-feed" id="activity-feed">
+            <div class="loading-pulse">Loading activity...</div>
+          </div>
+        </div>
+        <div class="glass-card recent-card">
+          <div class="card-header"><h3>Recent Evidence</h3><button class="btn btn-xs btn-outline" onclick="navigate('evidence-list')">View All</button></div>
+          <div id="recent-evidence-list">
+            <div class="loading-pulse">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CASES ── -->
+    <section class="content-section" id="section-cases">
+      <div class="section-toolbar">
+        <input type="text" class="search-input" id="case-search" placeholder="Search cases..." oninput="filterCases()">
+        <select class="filter-select" id="case-status-filter" onchange="filterCases()">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="active">Active</option>
+          <option value="closed">Closed</option>
+        </select>
+        <button class="btn btn-primary investigator-only" onclick="openCreateCase()">+ New Case</button>
+      </div>
+      <div id="cases-grid" class="cards-grid">
+        <div class="loading-pulse">Loading cases...</div>
+      </div>
+
+      <!-- Create Case Modal -->
+      <div id="create-case-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeModal('create-case-modal')"></div>
+        <div class="modal-box glass-card">
+          <div class="modal-header">
+            <h3>Create New Case</h3>
+            <button class="modal-close" onclick="closeModal('create-case-modal')">✕</button>
+          </div>
+          <form id="create-case-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Case Title *</label>
+                <input type="text" id="case-title" required placeholder="e.g. Operation Digital Shield">
+              </div>
+              <div class="form-group">
+                <label>Priority</label>
+                <select id="case-priority">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="case-description" rows="3" placeholder="Case overview and objectives..."></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Location</label>
+                <input type="text" id="case-location" placeholder="e.g. New York, NY">
+              </div>
+              <div class="form-group">
+                <label>Incident Date</label>
+                <input type="date" id="case-date">
+              </div>
+            </div>
+            <div id="create-case-error" class="alert-error hidden"></div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" onclick="closeModal('create-case-modal')">Cancel</button>
+              <button type="submit" class="btn btn-primary">Create Case</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Case Detail Modal -->
+      <div id="case-detail-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeModal('case-detail-modal')"></div>
+        <div class="modal-box modal-wide glass-card">
+          <div class="modal-header">
+            <h3 id="case-detail-title">Case Detail</h3>
+            <button class="modal-close" onclick="closeModal('case-detail-modal')">✕</button>
+          </div>
+          <div id="case-detail-body"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── UPLOAD EVIDENCE ── -->
+    <section class="content-section" id="section-evidence">
+      <div class="glass-card upload-panel">
+        <div class="upload-panel-header">
+          <h2>Upload Digital Evidence</h2>
+          <p>Files are hashed with SHA-256 and registered on the blockchain immediately upon upload.</p>
+        </div>
+        <form id="evidence-upload-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Case *</label>
+              <select id="ev-case-id" required>
+                <option value="">Select a Case</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Evidence Type *</label>
+              <select id="ev-type" required>
+                <option value="other">Other</option>
+                <option value="pcap">Network Capture (PCAP)</option>
+                <option value="image">Image / Photo</option>
+                <option value="log">Log File</option>
+                <option value="document">Document</option>
+                <option value="video">Video / Audio</option>
+                <option value="malware">Malware Sample</option>
+                <option value="database">Database</option>
+                <option value="email">Email</option>
+              </select>
+            </div>
+          </div>
+          <div class="upload-zone large" id="ev-drop-zone">
+            <div class="upload-zone-inner">
+              <span class="upload-icon-lg">&#9651;</span>
+              <p class="upload-title">Drag & Drop Evidence File</p>
+              <p class="upload-sub">or click to browse — Max 100MB</p>
+            </div>
+            <input type="file" id="ev-file" accept="*/*">
+          </div>
+          <div id="ev-file-info" class="file-info-card hidden"></div>
+
+          <!-- Metadata Preview Panel (shown after file analysis) -->
+          <div id="ev-metadata-panel" class="hidden" style="margin:1rem 0">
+            <div class="glass-card" style="padding:1.2rem;border-color:rgba(0,212,255,0.25)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                <h3 style="font-size:1.1rem;color:var(--accent)">Metadata details of your file</h3>
+                <span id="ev-meta-status" style="font-size:0.75rem;color:var(--text-muted)">Analyzing...</span>
+              </div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem;line-height:1.4;">
+                <p>The following table shows all EXIF data and metadata we could extract from your file using our forensic metadata viewer.</p>
+                <p>The data shown is all the metadata we could automatically extract from your file.</p>
+                <p>It may be incomplete or inaccurate.</p>
+                <p>Metadata may have been changed or deleted in the past. Please note that the metadata is provided without liability.</p>
+              </div>
+
+              <!-- File Info -->
+              <div id="meta-file-info" class="meta-section"></div>
+
+              <!-- Camera / Lens -->
+              <div id="meta-camera" class="meta-section hidden">
+                <div class="meta-section-title">Camera / Lens Data</div>
+                <div id="meta-camera-data" class="meta-grid"></div>
+                <div class="form-group" style="margin-top:0.5rem">
+                  <label>Camera Notes (editable)</label>
+                  <input type="text" id="meta-camera-override" placeholder="Add notes about camera/lens..." class="meta-edit-input">
+                </div>
+              </div>
+
+              <!-- GPS / Location -->
+              <div id="meta-gps" class="meta-section hidden">
+                <div class="meta-section-title">GPS / Location Data</div>
+                <div id="meta-gps-data" class="meta-grid"></div>
+                <div class="form-group" style="margin-top:0.5rem">
+                  <label>Location Notes (editable)</label>
+                  <input type="text" id="meta-gps-override" placeholder="Add location context..." class="meta-edit-input">
+                </div>
+              </div>
+
+              <!-- Software / Program -->
+              <div id="meta-software" class="meta-section hidden">
+                <div class="meta-section-title">Software / Program</div>
+                <div id="meta-software-data" class="meta-grid"></div>
+                <div class="form-group" style="margin-top:0.5rem">
+                  <label>Software Notes (editable)</label>
+                  <input type="text" id="meta-software-override" placeholder="Add notes about source application..." class="meta-edit-input">
+                </div>
+              </div>
+
+              <!-- Editing Analysis -->
+              <div id="meta-editing" class="meta-section hidden">
+                <div class="meta-section-title">Editing / Tampering Analysis</div>
+                <div id="meta-editing-data"></div>
+                <div class="form-group" style="margin-top:0.5rem">
+                  <label>Editing Notes (editable)</label>
+                  <input type="text" id="meta-editing-override" placeholder="Add notes about file authenticity..." class="meta-edit-input">
+                </div>
+              </div>
+
+              <!-- Timestamps -->
+              <div id="meta-timestamps" class="meta-section hidden">
+                <div class="meta-section-title">Timestamps</div>
+                <div id="meta-timestamps-data" class="meta-grid"></div>
+              </div>
+
+              <!-- General Notes -->
+              <div class="form-group" style="margin-top:0.8rem">
+                <label>General Metadata Notes (editable)</label>
+                <textarea id="meta-general-notes" rows="2" placeholder="Add any general notes about the extracted metadata..." class="meta-edit-input"></textarea>
+              </div>
+
+              <!-- Raw EXIF toggle -->
+              <details style="margin-top:0.5rem">
+                <summary style="font-size:0.75rem;color:var(--text-muted);cursor:pointer;user-select:none">View Raw Metadata (JSON)</summary>
+                <pre id="meta-raw-json" style="font-size:0.7rem;color:var(--text-muted);background:rgba(0,0,0,0.3);padding:0.8rem;border-radius:6px;max-height:200px;overflow:auto;margin-top:0.5rem;font-family:var(--mono);word-break:break-all;white-space:pre-wrap"></pre>
+              </details>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="ev-description" rows="2" placeholder="Describe what this evidence is and how it was collected..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Location Found</label>
+              <input type="text" id="ev-location" placeholder="e.g. Server Room A, IP 192.168.1.5">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="ev-tags" placeholder="e.g. malware, exfiltration, suspicious">
+          </div>
+          <div id="upload-error" class="alert-error hidden"></div>
+          <div id="upload-progress" class="progress-area hidden">
+            <div class="progress-bar-wrap">
+              <div class="progress-bar" id="upload-prog-bar"></div>
+            </div>
+            <p id="upload-prog-text">Uploading...</p>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" id="upload-btn">
+            Register Evidence on Blockchain
+          </button>
+        </form>
+        <div id="upload-result" class="upload-result hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── EVIDENCE LIBRARY ── -->
+    <section class="content-section" id="section-evidence-list">
+      <div class="section-toolbar">
+        <input type="text" class="search-input" id="ev-search" placeholder="Search evidence...">
+        <select class="filter-select" id="ev-status-filter">
+          <option value="">All Statuses</option>
+          <option value="verified">Verified</option>
+          <option value="pending">Pending</option>
+          <option value="tampered">Tampered</option>
+          <option value="transferred">Transferred</option>
+        </select>
+        <select class="filter-select" id="ev-type-filter">
+          <option value="">All Types</option>
+          <option value="pcap">PCAP</option>
+          <option value="image">Image</option>
+          <option value="log">Log</option>
+          <option value="document">Document</option>
+          <option value="malware">Malware</option>
+        </select>
+      </div>
+      <div id="evidence-table-wrap">
+        <div class="loading-pulse">Loading evidence library...</div>
+      </div>
+    </section>
+
+    <!-- ── ANALYST LAB ── -->
+    <section class="content-section" id="section-analyst">
+      <div class="glass-card analyst-panel">
+        <div class="upload-panel-header">
+          <h2>Forensic Analysis Lab</h2>
+          <p>Review assigned evidence and add analysis notes. All actions are logged.</p>
+        </div>
+        <div id="analyst-evidence-list">
+          <div class="loading-pulse">Loading assigned evidence...</div>
+        </div>
+      </div>
+
+      <!-- Note Modal -->
+      <div id="note-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeModal('note-modal')"></div>
+        <div class="modal-box glass-card">
+          <div class="modal-header">
+            <h3>Add Analysis Note</h3>
+            <button class="modal-close" onclick="closeModal('note-modal')">✕</button>
+          </div>
+          <input type="hidden" id="note-evidence-id">
+          <div class="form-group">
+            <label>Classification</label>
+            <select id="note-classification">
+              <option value="internal">Internal</option>
+              <option value="confidential">Confidential</option>
+              <option value="top_secret">Top Secret</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Analysis Notes *</label>
+            <textarea id="note-content" rows="6" placeholder="Enter your forensic analysis findings..."></textarea>
+          </div>
+          <div id="note-error" class="alert-error hidden"></div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeModal('note-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="submitNote()">Save Note</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── USER MANAGEMENT (Admin) ── -->
+    <section class="content-section" id="section-users">
+      <div class="section-toolbar">
+        <h2>User Management</h2>
+        <button class="btn btn-primary" onclick="openCreateUser()">+ Add User</button>
+      </div>
+      <div id="users-table-wrap">
+        <div class="loading-pulse">Loading users...</div>
+      </div>
+
+      <!-- Create/Edit User Modal -->
+      <div id="user-modal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeModal('user-modal')"></div>
+        <div class="modal-box glass-card">
+          <div class="modal-header">
+            <h3 id="user-modal-title">Add New User</h3>
+            <button class="modal-close" onclick="closeModal('user-modal')">✕</button>
+          </div>
+          <form id="user-form">
+            <input type="hidden" id="user-id-edit">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Username *</label>
+                <input type="text" id="user-username" required>
+              </div>
+              <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="user-email" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="user-fullname">
+              </div>
+              <div class="form-group">
+                <label>Role *</label>
+                <select id="user-role" required>
+                  <option value="viewer">Viewer</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="investigator">Investigator</option>
+                  <option value="guest">Guest (Verification Only)</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Department</label>
+                <input type="text" id="user-dept" placeholder="e.g. Forensics Lab">
+              </div>
+              <div class="form-group">
+                <label>Badge Number</label>
+                <input type="text" id="user-badge" placeholder="e.g. INV-002">
+              </div>
+            </div>
+            <div class="form-group">
+              <label id="user-pw-label">Password *</label>
+              <input type="password" id="user-password" autocomplete="new-password">
+            </div>
+            <div id="user-error" class="alert-error hidden"></div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" onclick="closeModal('user-modal')">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save User</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AUDIT TRAIL (Admin) ── -->
+    <section class="content-section" id="section-audit">
+      <div class="section-toolbar">
+        <h2>System Audit Trail</h2>
+        <select class="filter-select" id="audit-severity" onchange="loadAuditLogs()">
+          <option value="">All Severities</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="error">Error</option>
+          <option value="critical">Critical</option>
+        </select>
+        <button class="btn btn-outline" onclick="loadAuditLogs()">&#8635; Refresh</button>
+      </div>
+      <div id="audit-table-wrap">
+        <div class="loading-pulse">Loading audit logs...</div>
+      </div>
+    </section>
+
+    <!-- ── BLOCKCHAIN EXPLORER ── -->
+    <section class="content-section" id="section-blockchain">
+      <div class="blockchain-header glass-card">
+        <div>
+          <h2>Blockchain Status</h2>
+          <p id="bc-mode-desc">Checking connection...</p>
+        </div>
+        <button class="btn btn-outline" onclick="loadBlockchainStatus()">&#8635; Refresh</button>
+      </div>
+      <div class="blockchain-grid">
+        <div class="glass-card bc-stat-card">
+          <div class="bc-stat-icon">&#9741;</div>
+          <div class="bc-stat-val" id="bc-status-val">&mdash;</div>
+          <div class="bc-stat-lbl">Connection</div>
+        </div>
+        <div class="glass-card bc-stat-card">
+          <div class="bc-stat-icon">&#9632;</div>
+          <div class="bc-stat-val" id="bc-block-val">&mdash;</div>
+          <div class="bc-stat-lbl">Block Number</div>
+        </div>
+        <div class="glass-card bc-stat-card">
+          <div class="bc-stat-icon">&#9998;</div>
+          <div class="bc-stat-val" id="bc-records-val">&mdash;</div>
+          <div class="bc-stat-lbl">Chain Records</div>
+        </div>
+        <div class="glass-card bc-stat-card">
+          <div class="bc-stat-icon">&#9673;</div>
+          <div class="bc-stat-val" id="bc-mode-val">&mdash;</div>
+          <div class="bc-stat-lbl">Mode</div>
+        </div>
+      </div>
+      <div class="glass-card" style="margin-top:1.5rem;padding:1.5rem">
+        <h3 style="margin-bottom:1rem;color:var(--accent)">Quick Hash Verification</h3>
+        <div style="display:flex;gap:1rem;align-items:flex-end">
+          <div class="form-group" style="flex:1;margin:0">
+            <input type="text" id="bc-hash-input" placeholder="Enter SHA-256 hash to verify..." class="mono-input">
+          </div>
+          <button class="btn btn-primary" onclick="verifyHashInline()">Verify</button>
+        </div>
+        <div id="bc-verify-result" class="verify-result hidden" style="margin-top:1rem"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══════════════ EVIDENCE DETAIL MODAL ══════════════ -->
+<div id="evidence-detail-modal" class="modal hidden">
+  <div class="modal-backdrop" onclick="closeModal('evidence-detail-modal')"></div>
+  <div class="modal-box modal-wide glass-card">
+    <div class="modal-header">
+      <h3 id="ev-detail-title">Evidence Detail</h3>
+      <button class="modal-close" onclick="closeModal('evidence-detail-modal')">✕</button>
+    </div>
+    <div id="ev-detail-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════ TOAST NOTIFICATIONS ══════════════ -->
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
