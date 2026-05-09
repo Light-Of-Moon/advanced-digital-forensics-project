@@ -47,7 +47,7 @@ Powered by **SQLAlchemy** (using an SQLite database), this layer stores the rela
 
 ## 📂 Project Structure & File Index
 
-### ⚙️ Backend Files
+### Backend Files
 * **`backend/app.py`**: The central nervous system. Initializes the Flask server, defines RESTful API endpoints, and handles core application logic.
 * **`backend/auth.py`**: The security gatekeeper handling password hashing, JWT creation, and `@role_required` decorators.
 * **`backend/blockchain.py`**: The custom Python blockchain implementation that ensures evidence immutability and validates the entire chain.
